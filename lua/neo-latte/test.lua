@@ -4,10 +4,11 @@ local ui = require'neo-latte.ui'
 local M = {}
 
 ---@param type string "'file', 'nearest', or 'suite'
----@param arguments table
+---@param args { position: any, arguments: string[], on_exit: fun(exit_code: number) }
 ---@return Job | nil
-function M.run(type, position, arguments)
-  local command = M.get_command(type, position or M.create_position(), arguments)
+function M.run(type, args)
+  local position = args.position or M.create_position()
+  local command = M.get_command(type, position, args.arguments)
   if not command then
     return
   end
@@ -22,11 +23,14 @@ function M.run(type, position, arguments)
 
   job.job_id = vim.fn.termopen(table.concat(command, ' '), {
     on_exit = function (_, exit_code)
+      if args.on_exit then
+        args.on_exit(exit_code)
+      end
+
       if exit_code == 0 then
         ui.success('Test success!')
       elseif exit_code < 128 then
         -- NOTE: exit_code of >= 128 means it was killed by signal
-        print(vim.inspect(job))
         job:show()
       end
     end

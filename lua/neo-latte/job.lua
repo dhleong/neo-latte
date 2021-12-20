@@ -19,6 +19,16 @@ function Job:kill()
   vim.fn.jobstop(self.job_id)
 end
 
+function Job:hide()
+  local win_id = vim.fn.bufwinid(self.buf_id)
+  if win_id == -1 then
+    -- No window or buffer gone; nop
+    return
+  end
+
+  vim.api.nvim_win_close(win_id, true)
+end
+
 function Job:show()
   vim.cmd([[aboveleft 10split | e #]] .. self.buf_id)
   vim.cmd([[normal G]])
