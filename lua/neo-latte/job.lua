@@ -49,6 +49,14 @@ function Job:start(type, position, command, args)
         -- NOTE: exit_code of >= 128 means it was killed by signal
         job:show()
       end
+
+      -- Clear "modified" flag after a delay so we can close the terminal
+      -- window without nvim whining. For some reason we can't just set this
+      -- here; I think neovim writes something to the buffer after calling
+      -- our on_exit callback...
+      vim.defer_fn(function ()
+        vim.api.nvim_buf_set_option(job.buf_id, 'modified', false)
+      end, 50)
     end
   })
 
@@ -93,6 +101,7 @@ function Job:show()
     vim.cmd([[aboveleft 10split | e #]] .. self.buf_id)
   end
 
+  vim.bo.bufhidden = 'wipe'
   vim.cmd([[normal G]])
   vim.cmd([[wincmd p]])
 end
