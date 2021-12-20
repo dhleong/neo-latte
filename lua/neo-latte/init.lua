@@ -7,7 +7,11 @@ function M.toggle_auto_test()
   vim.b.neo_latte_autorun = not was_enabled
 
   -- TODO
-  test.run('file')
+  local job = test.run('file')
+  if not job then
+    print('No test/runner available')
+  end
+
   if not was_enabled then
     print('Enabled neo-latte auto test')
   else

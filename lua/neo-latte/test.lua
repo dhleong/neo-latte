@@ -1,13 +1,40 @@
+local Job = require'neo-latte.job'
+local ui = require'neo-latte.ui'
+
 local M = {}
 
+---@param type string "'file', 'nearest', or 'suite'
+---@param arguments table
+---@return Job | nil
 function M.run(type, position, arguments)
   local command = M.get_command(type, position or M.create_position(), arguments)
   if not command then
-    print('No test/runner available.')
+    return
   end
 
-  vim.cmd([[topleft 10split | term ]] .. table.concat(command, ' '))
-  vim.cmd([[wincmd p]])
+  -- FIXME: Find existing window
+
+  vim.cmd([[-tabnew]])
+  local job = Job:new{
+    buf_id = vim.fn.bufnr('%'),
+    command = command,
+  }
+
+  job.job_id = vim.fn.termopen(table.concat(command, ' '), {
+    on_exit = function (_, exit_code)
+      if exit_code == 0 then
+        ui.success('Test success!')
+      elseif exit_code < 128 then
+        -- NOTE: exit_code of >= 128 means it was killed by signal
+        print(vim.inspect(job))
+        job:show()
+      end
+    end
+  })
+  vim.bo.bufhidden = 'hide'
+  vim.cmd('hide')
+
+  return job
 end
 
 function M.create_position(path)
@@ -28,7 +55,7 @@ function M.get_command(type, position, arguments)
   end
 
   local runner = vim.fn['test#determine_runner'](position.file)
-  local strategy = 'neovim' -- TODO: strategy
+  local strategy = 'neovim' -- NOTE: We don't actually use this
 
   local args = vim.fn['test#base#build_position'](runner, type, position)
   vim.list_extend(args, arguments or {})
