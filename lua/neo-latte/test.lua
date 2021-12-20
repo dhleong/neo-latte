@@ -3,20 +3,21 @@ local Job = require'neo-latte.job'
 local M = {}
 
 ---@alias TestType "'file'" | "'nearest'" | "'suite'"
+---@alias Position { file: string, line: number, col: number }
 
 ---@param type TestType
----@param args { position: any, arguments: string[], on_exit: fun(exit_code: number) }
+---@param args { command: string[]|nil, position: Position|nil, arguments: string[], on_exit: fun(exit_code: number) }
 ---@return Job | nil
 function M.run(type, args)
   local position = args.position or M.create_position()
-  local command = M.get_command(type, position, args.arguments)
+  local command = args.command or M.get_command(type, position, args.arguments)
   if not command then
     return
   end
 
   -- FIXME: Find existing window
 
-  local job = Job:start(type, command, {
+  local job = Job:start(type, position, command, {
     on_exit = function (exit_code)
       if args.on_exit then
         args.on_exit(exit_code)
@@ -26,6 +27,7 @@ function M.run(type, args)
   return job
 end
 
+---@return Position
 function M.create_position(path)
   local filename_modifier = vim.g['test#filename_modifier'] or ':.'
   local full_path = path or vim.fn.expand('%:p')

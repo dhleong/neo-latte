@@ -4,10 +4,10 @@ local ui = require'neo-latte.ui'
 ---@field buf_id number
 ---@field command string[]
 ---@field job_id number
+---@field position Position
 ---@field type TestType
 local Job = {}
 
----@param args { buf_id: number, command: string[], job_id: number, type: TestType }
 ---@return Job
 function Job:new(args)
   local o = vim.tbl_deep_extend('force', {}, args)
@@ -19,13 +19,15 @@ function Job:new(args)
 end
 
 ---@param type TestType
+---@param position Position
 ---@param command string[]
 ---@params args { on_exit: fun(exit_code: number) }
-function Job:start(type, command, args)
+function Job:start(type, position, command, args)
   vim.cmd([[-tabnew]])
   local job = Job:new{
     buf_id = vim.fn.bufnr('%'),
     command = command,
+    position = position,
     type = type,
   }
 
