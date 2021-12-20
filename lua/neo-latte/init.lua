@@ -1,21 +1,45 @@
 local prefs = require'neo-latte.prefs'
 local test = require'neo-latte.test'
 
-local state = {}
+---@alias TabPageState { last_job: Job| nil, auto: TestType|nil }
+
+local state = {
+  ---@type table<number, TabPageState>
+  tabpages = {},
+}
+
+local function tabpage()
+  local tab_id = vim.api.nvim_get_current_tabpage()
+  local existing = state.tabpages[tab_id]
+  if existing then
+    return existing
+  end
+
+  local new_tabpage_state = {}
+  state.tabpages[tab_id] = new_tabpage_state
+  return new_tabpage_state
+end
 
 local M = {}
 
 ---@param type TestType
 function M.toggle_auto_test(type)
-  local was_enabled = vim.b.neo_latte_autorun
-  vim.b.neo_latte_autorun = not was_enabled
+  local tab = tabpage()
+  local old_type = tab.auto
+  local new_type = type or prefs'default_type'
 
-  if not was_enabled then
-    M.enable_auto_test(type)
-    print('Enabled neo-latte auto test; running now...')
+  if old_type ~= new_type then
+    tab.auto = new_type
+  else
+    tab.auto = nil
+  end
+
+  if tab.auto then
+    M.enable_auto_test(new_type)
+    print('[neo-latte] Enabled "' .. new_type .. '" auto test; running now...')
   else
     M.disable_auto_test()
-    print('Disabled neo-latte auto test')
+    print('[neo-latte] Disabled auto test')
   end
 end
 
@@ -30,8 +54,9 @@ function M.enable_auto_test(type)
 end
 
 function M.disable_auto_test()
-  local last_job = state.last_job
-  state.last_job = nil
+  local tab = tabpage()
+  local last_job = tab.last_job
+  tab.last_job = nil
 
   if last_job then
     last_job:kill()
@@ -47,49 +72,49 @@ function M.disable_auto_test()
 end
 
 function M.retry()
-  local last_job = state.last_job
+  local tab = tabpage()
+  local last_job = tab.last_job
   if not last_job then
     return
   end
 
-  last_job:kill()
-
   M.run(last_job.type, {
     command = last_job.command,
-    win_id = last_job:find_win_id(),
   })
 end
 
 -- Begin running the requested test type
 ---@param type TestType
----@param opts { command: string[], silent: boolean, win_id: number|nil }
+---@param opts { command: string[], silent: boolean }
 function M.run(type, opts)
   local options = opts or {}
-  local last_job = state.last_job
+  local tab = tabpage()
+  local last_job = tab.last_job
   if last_job then
     last_job:kill()
   end
 
-  state.last_job = test.run(type or prefs'default_type', {
+  tab.last_job = test.run(type or prefs'default_type', {
     command = options.command,
-    win_id = options.win_id,
+    win_id = last_job and last_job:find_win_id(),
     on_exit = function (exit_code)
-      if state.last_job and exit_code == 0 then
-        state.last_job:hide()
+      if tab.last_job and exit_code == 0 then
+        tab.last_job:hide()
       end
     end
   })
 
-  if not state.last_job then
-    print('No test/runner available')
+  if not tab.last_job then
+    print('[neo-latte] No test/runner available')
   elseif not options.silent then
-    print('Running test...')
+    print('[neo-latte] Running test...')
   end
 end
 
 -- Stop the most-recent test job, if it's still running
 function M.stop()
-  local job = state.last_job
+  local tab = tabpage()
+  local job = tab.last_job
   if job then
     job:kill()
   end
