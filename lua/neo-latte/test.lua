@@ -1,9 +1,10 @@
 local Job = require'neo-latte.job'
-local ui = require'neo-latte.ui'
 
 local M = {}
 
----@param type string "'file', 'nearest', or 'suite'
+---@alias TestType "'file'" | "'nearest'" | "'suite'"
+
+---@param type TestType
 ---@param args { position: any, arguments: string[], on_exit: fun(exit_code: number) }
 ---@return Job | nil
 function M.run(type, args)
@@ -15,29 +16,13 @@ function M.run(type, args)
 
   -- FIXME: Find existing window
 
-  vim.cmd([[-tabnew]])
-  local job = Job:new{
-    buf_id = vim.fn.bufnr('%'),
-    command = command,
-  }
-
-  job.job_id = vim.fn.termopen(table.concat(command, ' '), {
-    on_exit = function (_, exit_code)
+  local job = Job:start(type, command, {
+    on_exit = function (exit_code)
       if args.on_exit then
         args.on_exit(exit_code)
       end
-
-      if exit_code == 0 then
-        ui.success('Test success!')
-      elseif exit_code < 128 then
-        -- NOTE: exit_code of >= 128 means it was killed by signal
-        job:show()
-      end
     end
   })
-  vim.bo.bufhidden = 'hide'
-  vim.cmd('hide')
-
   return job
 end
 

@@ -1,10 +1,12 @@
+local prefs = require'neo-latte.prefs'
 local test = require'neo-latte.test'
 
 local state = {}
 
 local M = {}
 
-function M.toggle_auto_test()
+---@param type TestType
+function M.toggle_auto_test(type)
   local was_enabled = vim.b.neo_latte_autorun
   vim.b.neo_latte_autorun = not was_enabled
 
@@ -13,7 +15,7 @@ function M.toggle_auto_test()
     last_job:kill()
   end
 
-  state.last_job = test.run('file', {
+  state.last_job = test.run(type or prefs'default_type', {
     on_exit = function (exit_code)
       if last_job and exit_code == 0 then
         last_job:hide()

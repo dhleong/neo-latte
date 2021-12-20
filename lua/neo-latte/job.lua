@@ -1,10 +1,13 @@
+local ui = require'neo-latte.ui'
+
 ---@class Job
 ---@field buf_id number
 ---@field command string[]
 ---@field job_id number
+---@field type TestType
 local Job = {}
 
----@param args { buf_id: number, command: string[], job_id: number }
+---@param args { buf_id: number, command: string[], job_id: number, type: TestType }
 ---@return Job
 function Job:new(args)
   local o = vim.tbl_deep_extend('force', {}, args)
@@ -13,6 +16,37 @@ function Job:new(args)
   self.__index = self
 
   return o
+end
+
+---@param type TestType
+---@param command string[]
+---@params args { on_exit: fun(exit_code: number) }
+function Job:start(type, command, args)
+  vim.cmd([[-tabnew]])
+  local job = Job:new{
+    buf_id = vim.fn.bufnr('%'),
+    command = command,
+    type = type,
+  }
+
+  job.job_id = vim.fn.termopen(table.concat(command, ' '), {
+    on_exit = function (_, exit_code)
+      if args.on_exit then
+        args.on_exit(exit_code)
+      end
+
+      if exit_code == 0 then
+        ui.success('Test success!')
+      elseif exit_code < 128 then
+        -- NOTE: exit_code of >= 128 means it was killed by signal
+        job:show()
+      end
+    end
+  })
+  vim.bo.bufhidden = 'hide'
+  vim.cmd('hide')
+
+  return job
 end
 
 function Job:kill()
