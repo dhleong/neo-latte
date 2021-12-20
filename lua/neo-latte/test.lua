@@ -15,9 +15,8 @@ function M.run(type, args)
     return
   end
 
-  -- FIXME: Find existing window
-
   local job = Job:start(type, position, command, {
+    win_id = args and args.win_id,
     on_exit = function (exit_code)
       if args.on_exit then
         args.on_exit(exit_code)

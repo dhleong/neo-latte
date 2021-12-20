@@ -48,12 +48,13 @@ function M.retry()
 
   M.run(last_job.type, {
     command = last_job.command,
+    win_id = last_job:find_win_id(),
   })
 end
 
 -- Begin running the requested test type
 ---@param type TestType
----@param opts { command: string[], silent: boolean }
+---@param opts { command: string[], silent: boolean, win_id: number|nil }
 function M.run(type, opts)
   local options = opts or {}
   local last_job = state.last_job
@@ -62,10 +63,11 @@ function M.run(type, opts)
   end
 
   state.last_job = test.run(type or prefs'default_type', {
-    command = opts.command,
+    command = options.command,
+    win_id = options.win_id,
     on_exit = function (exit_code)
-      if last_job and exit_code == 0 then
-        last_job:hide()
+      if state.last_job and exit_code == 0 then
+        state.last_job:hide()
       end
     end
   })
