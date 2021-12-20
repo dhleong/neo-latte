@@ -10,6 +10,50 @@ function M.toggle_auto_test(type)
   local was_enabled = vim.b.neo_latte_autorun
   vim.b.neo_latte_autorun = not was_enabled
 
+  if not was_enabled then
+    M.enable_auto_test(type)
+    print('Enabled neo-latte auto test; running now...')
+  else
+    M.disable_auto_test()
+    print('Disabled neo-latte auto test')
+  end
+end
+
+function M.enable_auto_test(type)
+  M.run(type, { silent = true })
+  vim.cmd([[
+    augroup NeoLatteAutoRun
+      autocmd!
+      autocmd BufWritePost * lua require'neo-latte'.retry()
+    augroup END
+  ]])
+end
+
+function M.disable_auto_test()
+  vim.cmd([[
+    augroup NeoLatteAutoRun
+      autocmd!
+    augroup END
+  ]])
+  vim.cmd([[augroup! NeoLatteAutoRun]])
+end
+
+function M.retry()
+  local last_job = state.last_job
+  if not last_job then
+    return
+  end
+
+  -- FIXME: retry *this specific job*
+  last_job:kill()
+  M.run(last_job.type)
+end
+
+-- Begin running the requested test type
+---@param type TestType
+---@param opts { silent: boolean }
+function M.run(type, opts)
+  local options = opts or {}
   local last_job = state.last_job
   if last_job then
     last_job:kill()
@@ -22,14 +66,19 @@ function M.toggle_auto_test(type)
       end
     end
   })
+
   if not state.last_job then
     print('No test/runner available')
+  elseif not options.silent then
+    print('Running test...')
   end
+end
 
-  if not was_enabled then
-    print('Enabled neo-latte auto test')
-  else
-    print('Disabled neo-latte auto test')
+-- Stop the most-recent test job, if it's still running
+function M.stop()
+  local job = state.last_job
+  if job then
+    job:kill()
   end
 end
 
