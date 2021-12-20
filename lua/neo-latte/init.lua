@@ -30,6 +30,14 @@ function M.enable_auto_test(type)
 end
 
 function M.disable_auto_test()
+  local last_job = state.last_job
+  state.last_job = nil
+
+  if last_job then
+    last_job:kill()
+    last_job:hide()
+  end
+
   vim.cmd([[
     augroup NeoLatteAutoRun
       autocmd!
