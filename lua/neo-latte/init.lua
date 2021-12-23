@@ -101,6 +101,9 @@ function M.run(type, opts)
       if tab.last_job and exit_code == 0 then
         tab.last_job:hide()
       end
+      if exit_code > 0 then
+        print('[neo-latte] Test(s) failed')
+      end
     end
   })
 
