@@ -55,16 +55,18 @@ function Job:start(type, position, command, args)
       -- here; I think neovim writes something to the buffer after calling
       -- our on_exit callback...
       vim.defer_fn(function ()
-        vim.api.nvim_buf_set_option(job.buf_id, 'modified', false)
+        if job:find_win_id() then
+          vim.api.nvim_buf_set_option(job.buf_id, 'modified', false)
+        end
       end, 50)
     end
   })
 
+  vim.bo.bufhidden = 'hide'
   vim.cmd([[normal G]])
   if args.win_id then
     vim.cmd([[wincmd p]])
   else
-    vim.bo.bufhidden = 'hide'
     vim.cmd('hide')
   end
 
