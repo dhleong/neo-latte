@@ -1,5 +1,6 @@
 local prefs = require'neo-latte.prefs'
 local test = require'neo-latte.test'
+local ui = require'neo-latte.ui'
 
 ---@alias TabPageState { last_job: Job| nil, auto: TestType|nil }
 
@@ -107,6 +108,7 @@ function M.run(type, opts)
     end
   })
 
+  ui.clear_echo()
   if not tab.last_job then
     print('[neo-latte] No test/runner available')
   elseif not options.silent then

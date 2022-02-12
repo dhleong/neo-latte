@@ -4,6 +4,12 @@ vim.cmd([[
 
 local M = {}
 
+function M.clear_echo()
+  vim.fn.inputsave()
+  vim.fn.feedkeys(':', 'nx')
+  vim.fn.inputrestore()
+end
+
 ---@param message string
 function M.success(message)
   if message:len() >= vim.o.columns - 1 then
