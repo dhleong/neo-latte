@@ -44,8 +44,12 @@ function M.get_command(type, position, arguments)
     return
   end
 
-  local runner = vim.fn['test#determine_runner'](position.file)
   local strategy = 'neovim' -- NOTE: We don't actually use this
+  local runner = vim.fn['test#determine_runner'](position.file)
+  if not runner then
+    print('No runner available')
+    return
+  end
 
   local args = vim.fn['test#base#build_position'](runner, type, position)
   vim.list_extend(args, arguments or {})
