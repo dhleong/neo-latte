@@ -46,12 +46,12 @@ end
 
 function M.enable_auto_test(type)
   M.run(type, { silent = true })
-  vim.cmd([[
+  vim.cmd [[
     augroup NeoLatteAutoRun
       autocmd!
       autocmd BufWritePost * lua require'neo-latte'.retry()
     augroup END
-  ]])
+  ]]
 end
 
 function M.disable_auto_test()
@@ -64,12 +64,12 @@ function M.disable_auto_test()
     last_job:hide()
   end
 
-  vim.cmd([[
+  vim.cmd [[
     augroup NeoLatteAutoRun
       autocmd!
     augroup END
-  ]])
-  vim.cmd([[augroup! NeoLatteAutoRun]])
+    augroup! NeoLatteAutoRun
+  ]]
 end
 
 function M.retry()
@@ -84,10 +84,12 @@ function M.retry()
   })
 end
 
+---@alias CommandOpts { command: string[], silent: boolean, remove_args: string[] }
+
 -- Begin running the requested test type
----@param type TestType
----@param opts { command: string[], silent: boolean }
-function M.run(type, opts)
+---@param test_type TestType|{ type:string }:CommandOpts
+---@param opts CommandOpts|nil
+function M.run(test_type, opts)
   local options = opts or {}
   local tab = tabpage()
   local last_job = tab.last_job
@@ -95,8 +97,14 @@ function M.run(type, opts)
     last_job:kill()
   end
 
-  tab.last_job = test.run(type or prefs'default_type', {
+  if type(test_type) == 'table' then
+    options = test_type
+    test_type = test_type.type
+  end
+
+  tab.last_job = test.run(test_type or prefs'default_type', {
     command = options.command,
+    remove_arguments = options.remove_arguments,
     win_id = last_job and last_job:find_win_id(),
     on_exit = function (exit_code)
       if tab.last_job and exit_code == 0 then

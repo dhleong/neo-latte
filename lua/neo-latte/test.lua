@@ -5,14 +5,22 @@ local M = {}
 ---@alias TestType "'file'" | "'nearest'" | "'suite'"
 ---@alias Position { file: string, line: number, col: number }
 
+---@alias CommandArgs { command: string[]|nil, position: Position|nil, arguments: string[], remove_arguments: string[], on_exit: fun(exit_code: number) }
+
 ---@param type TestType
----@param args { command: string[]|nil, position: Position|nil, arguments: string[], on_exit: fun(exit_code: number) }
+---@param args CommandArgs
 ---@return Job | nil
 function M.run(type, args)
   local position = args.position or M.create_position()
   local command = args.command or M.get_command(type, position, args.arguments)
   if not command then
     return
+  end
+
+  if args.remove_arguments then
+    command = vim.tbl_filter(function (arg)
+      return not vim.tbl_contains(args.remove_arguments, arg)
+    end, command)
   end
 
   local job = Job:start(type, position, command, {
