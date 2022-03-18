@@ -36,8 +36,11 @@ function M.toggle_auto_test(type)
   end
 
   if tab.auto then
-    M.enable_auto_test(new_type)
-    print('[neo-latte] Enabled "' .. new_type .. '" auto test; running now...')
+    if M.enable_auto_test(new_type) then
+      print('[neo-latte] Enabled "' .. new_type .. '" auto test; running now...')
+    else
+      tab.auto = nil
+    end
   else
     M.disable_auto_test()
     print('[neo-latte] Disabled auto test')
@@ -45,13 +48,14 @@ function M.toggle_auto_test(type)
 end
 
 function M.enable_auto_test(type)
-  M.run(type, { silent = true })
-  vim.cmd [[
-    augroup NeoLatteAutoRun
-      autocmd!
-      autocmd BufWritePost * lua require'neo-latte'.retry()
-    augroup END
-  ]]
+  if M.run(type, { silent = true }) then
+    vim.cmd [[
+      augroup NeoLatteAutoRun
+        autocmd!
+        autocmd BufWritePost * lua require'neo-latte'.retry()
+      augroup END
+    ]]
+    end
 end
 
 function M.disable_auto_test()

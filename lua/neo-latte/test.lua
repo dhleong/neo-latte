@@ -59,6 +59,10 @@ function M.get_command(type, position, arguments)
     return
   end
 
+  if runner == 0 then
+    return
+  end
+
   local args = vim.fn['test#base#build_position'](runner, type, position)
   vim.list_extend(args, arguments or {})
   args = vim.fn['test#base#options'](runner, args, type)
