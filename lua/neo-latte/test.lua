@@ -35,15 +35,15 @@ function M.run(type, args)
 end
 
 ---@return Position
-function M.create_position(path)
+function M.create_position()
   local filename_modifier = vim.g['test#filename_modifier'] or ':.'
-  local full_path = path or vim.fn.expand('%:p')
+  local full_path = vim.fn.expand('%:p')
 
   return {
     path = full_path,
     file = vim.fn.fnamemodify(full_path, filename_modifier),
-    line = path and 1 or vim.fn.line('.'),
-    col = path and 1 or vim.fn.col('.'),
+    line = vim.fn.line('.'),
+    col = vim.fn.col('.'),
   }
 end
 
