@@ -1,6 +1,6 @@
-local prefs = require'neo-latte.prefs'
-local test = require'neo-latte.test'
-local ui = require'neo-latte.ui'
+local prefs = require 'neo-latte.prefs'
+local test = require 'neo-latte.test'
+local ui = require 'neo-latte.ui'
 
 ---@alias TabPageState { last_job: Job| nil, auto: TestType|nil }
 
@@ -27,7 +27,7 @@ local M = {}
 function M.toggle_auto_test(type)
   local tab = tabpage()
   local old_type = tab.auto
-  local new_type = type or prefs'default_type'
+  local new_type = type or prefs 'default_type'
 
   if old_type ~= new_type then
     tab.auto = new_type
@@ -55,7 +55,8 @@ function M.enable_auto_test(type)
         autocmd BufWritePost * lua require'neo-latte'.retry()
       augroup END
     ]]
-    end
+    return true
+  end
 end
 
 function M.disable_auto_test()
@@ -106,11 +107,11 @@ function M.run(test_type, opts)
     test_type = test_type.type
   end
 
-  tab.last_job = test.run(test_type or prefs'default_type', {
+  tab.last_job = test.run(test_type or prefs 'default_type', {
     command = options.command,
     remove_arguments = options.remove_arguments,
     win_id = last_job and last_job:find_win_id(),
-    on_exit = function (exit_code)
+    on_exit = function(exit_code)
       if tab.last_job and exit_code == 0 then
         tab.last_job:hide()
       end
@@ -123,9 +124,12 @@ function M.run(test_type, opts)
   ui.clear_echo()
   if not tab.last_job then
     print('[neo-latte] No test/runner available')
+    return false
   elseif not options.silent then
     print('[neo-latte] Running test...')
   end
+
+  return true
 end
 
 -- Stop the most-recent test job, if it's still running
