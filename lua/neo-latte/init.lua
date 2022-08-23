@@ -89,7 +89,7 @@ function M.retry()
   })
 end
 
----@alias CommandOpts { command: string[], silent: boolean, remove_args: string[] }
+---@alias CommandOpts { command: string[], silent: boolean, add_arguments: string[], remove_arguments: string[] }
 
 -- Begin running the requested test type
 ---@param test_type TestType|{ type:string }:CommandOpts
@@ -109,6 +109,7 @@ function M.run(test_type, opts)
 
   tab.last_job = test.run(test_type or prefs 'default_type', {
     command = options.command,
+    arguments = options.add_arguments,
     remove_arguments = options.remove_arguments,
     win_id = last_job and last_job:find_win_id(),
     on_exit = function(exit_code)
