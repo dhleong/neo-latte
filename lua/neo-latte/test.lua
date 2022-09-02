@@ -1,5 +1,20 @@
 local Job = require'neo-latte.job'
 
+local function activate_project_root()
+  if vim.g['test#project_root'] == nil then
+    return function ()
+      -- nop
+    end
+  end
+
+  local cmd = 'cd ' .. vim.g['test#project_root']
+  vim.fn.execute(cmd)
+
+  return function ()
+    vim.fn.execute('cd -')
+  end
+end
+
 local M = {}
 
 ---@alias TestType "'file'" | "'nearest'" | "'suite'"
@@ -11,8 +26,13 @@ local M = {}
 ---@param args CommandArgs
 ---@return Job | nil
 function M.run(type, args)
+  local leave_project_root = activate_project_root()
+
   local position = args.position or M.create_position()
   local command = args.command or M.get_command(type, position, args.arguments)
+
+  leave_project_root()
+
   if not command then
     return
   end
@@ -24,6 +44,7 @@ function M.run(type, args)
   end
 
   local job = Job:start(type, position, command, {
+    cwd = vim.g['test#project_root'],
     win_id = args and args.win_id,
     on_exit = function (exit_code)
       if args.on_exit then
@@ -69,7 +90,13 @@ function M.get_command(type, position, arguments)
   args = vim.fn['test#base#build_args'](runner, args, strategy)
 
   local executable = vim.fn['test#base#executable'](runner)
+
   local cmd = vim.list_slice(args)
+
+  if vim.g['test#project_root'] and string.find(executable, '[/\\]') then
+    executable = vim.g['test#project_root'] .. '/' .. executable
+  end
+
   table.insert(cmd, 1, executable)
 
   return cmd

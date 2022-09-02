@@ -44,6 +44,7 @@ function Job:start(type, position, command, args)
   local slow_job = {}
 
   job.job_id = vim.fn.termopen(table.concat(command, ' '), {
+    cwd = args.cwd,
     on_exit = function (_, exit_code)
       if args.on_exit then
         args.on_exit(exit_code)
