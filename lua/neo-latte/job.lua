@@ -1,4 +1,4 @@
-local ui = require'neo-latte.ui'
+local ui = require 'neo-latte.ui'
 
 local default_slow_job_timeout_ms = 3000
 
@@ -34,7 +34,7 @@ function Job:start(type, position, command, args)
     vim.cmd([[-tabnew]])
   end
 
-  local job = Job:new{
+  local job = Job:new {
     buf_id = vim.fn.bufnr('%'),
     command = command,
     position = position,
@@ -45,7 +45,7 @@ function Job:start(type, position, command, args)
 
   job.job_id = vim.fn.termopen(table.concat(command, ' '), {
     cwd = args.cwd,
-    on_exit = function (_, exit_code)
+    on_exit = function(_, exit_code)
       if args.on_exit then
         args.on_exit(exit_code)
       end
@@ -65,7 +65,7 @@ function Job:start(type, position, command, args)
       -- window without nvim whining. For some reason we can't just set this
       -- here; I think neovim writes something to the buffer after calling
       -- our on_exit callback...
-      vim.defer_fn(function ()
+      vim.defer_fn(function()
         if job:find_win_id() then
           vim.api.nvim_buf_set_option(job.buf_id, 'modified', false)
         end
@@ -114,6 +114,12 @@ end
 
 function Job:show()
   local current_win = self:find_win_id()
+  if vim.api.nvim_get_current_win() == current_win then
+    -- Already in the output window; this is a nop, since we don't
+    -- want to override the user's preferred location in it
+    return
+  end
+
   if current_win then
     -- Already shown; quickly select the window so we can scroll
     vim.api.nvim_set_current_win(current_win)

@@ -1,4 +1,4 @@
-local Job = require'neo-latte.job'
+local Job = require 'neo-latte.job'
 
 local function activate_project_root()
   if vim.g['test#project_root'] == nil then
@@ -20,7 +20,7 @@ local M = {}
 ---@alias TestType "'file'" | "'nearest'" | "'suite'"
 ---@alias Position { file: string, line: number, col: number }
 
----@alias CommandArgs { command: string[]|nil, position: Position|nil, arguments: string[], remove_arguments: string[], on_exit: fun(exit_code: number) }
+---@alias CommandArgs { command: string[]|nil, position: Position|nil, arguments: string[], remove_arguments: string[], on_exit: fun(exit_code: number), win_id: number|nil }
 
 ---@param type TestType
 ---@param args CommandArgs
@@ -38,7 +38,7 @@ function M.run(type, args)
   end
 
   if args.remove_arguments then
-    command = vim.tbl_filter(function (arg)
+    command = vim.tbl_filter(function(arg)
       return not vim.tbl_contains(args.remove_arguments, arg)
     end, command)
   end
@@ -46,7 +46,7 @@ function M.run(type, args)
   local job = Job:start(type, position, command, {
     cwd = vim.g['test#project_root'],
     win_id = args and args.win_id,
-    on_exit = function (exit_code)
+    on_exit = function(exit_code)
       if args.on_exit then
         args.on_exit(exit_code)
       end
