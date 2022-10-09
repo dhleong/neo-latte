@@ -113,7 +113,7 @@ function M.run(test_type, opts)
     remove_arguments = options.remove_arguments,
     win_id = last_job and last_job:find_win_id(),
     on_exit = function(exit_code)
-      if tab.last_job and exit_code == 0 then
+      if tab.last_job and exit_code == 0 and not tab.last_job:is_win_focused() then
         tab.last_job:hide()
       end
       if exit_code > 0 then

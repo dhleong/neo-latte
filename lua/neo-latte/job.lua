@@ -112,14 +112,19 @@ function Job:hide()
   vim.api.nvim_win_close(win_id, true)
 end
 
+function Job:is_win_focused()
+  local my_win = self:find_win_id()
+  return vim.api.nvim_get_current_win() == my_win
+end
+
 function Job:show()
-  local current_win = self:find_win_id()
-  if vim.api.nvim_get_current_win() == current_win then
+  if self:is_win_focused() then
     -- Already in the output window; this is a nop, since we don't
     -- want to override the user's preferred location in it
     return
   end
 
+  local current_win = self:find_win_id()
   if current_win then
     -- Already shown; quickly select the window so we can scroll
     vim.api.nvim_set_current_win(current_win)
