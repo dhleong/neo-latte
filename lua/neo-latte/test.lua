@@ -2,7 +2,7 @@ local Job = require 'neo-latte.job'
 
 local function activate_project_root()
   if vim.g['test#project_root'] == nil then
-    return function ()
+    return function()
       -- nop
     end
   end
@@ -10,7 +10,7 @@ local function activate_project_root()
   local cmd = 'cd ' .. vim.g['test#project_root']
   vim.fn.execute(cmd)
 
-  return function ()
+  return function()
     vim.fn.execute('cd -')
   end
 end
@@ -93,7 +93,7 @@ function M.get_command(type, position, arguments)
 
   local cmd = vim.list_slice(args)
 
-  if vim.g['test#project_root'] and string.find(executable, '[/\\]') then
+  if vim.g['test#project_root'] and string.find(executable, '[/\\]') and executable:sub(0, 1) ~= '/' then
     executable = vim.g['test#project_root'] .. '/' .. executable
   end
 
