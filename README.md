@@ -1,4 +1,4 @@
-vim-latte
+neo-latte
 =========
 
 *A new, pleasant companion for unit testing*
@@ -15,7 +15,7 @@ Install with your favorite plugin manager. I like [Plug][2]. You will also need 
 
 ```vim
 Plug 'vim-test/vim-test'
-Plug 'dhleong/vim-latte'
+Plug 'dhleong/neo-latte'
 ```
 
 neo-latte doesn't come with any mappings out of the box, but here are some ideas:
