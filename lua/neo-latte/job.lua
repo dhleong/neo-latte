@@ -102,6 +102,10 @@ function Job:kill()
   vim.fn.jobstop(self.job_id)
 end
 
+function Job:has_win()
+  return #vim.fn.win_findbuf(self.buf_id) > 0
+end
+
 function Job:hide()
   local win_id = self:find_win_id()
   if not win_id then
@@ -128,7 +132,12 @@ function Job:show()
   if current_win then
     -- Already shown; quickly select the window so we can scroll
     vim.api.nvim_set_current_win(current_win)
+  elseif self:has_win() then
+    -- If there's a window *somewhere* then we're probably on a
+    -- different tabpage. This should just be a nop
+    return
   else
+    -- Open a window *only* if there's no window *anywhere*
     vim.cmd([[aboveleft 10split | e #]] .. self.buf_id)
   end
 
