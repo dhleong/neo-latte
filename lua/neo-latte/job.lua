@@ -4,6 +4,7 @@ local default_slow_job_timeout_ms = 3000
 
 ---@class Job
 ---@field buf_id number
+---@field origin_win_id number
 ---@field command string[]
 ---@field job_id number
 ---@field position Position
@@ -39,6 +40,7 @@ function Job:start(type, position, command, args)
     command = command,
     position = position,
     type = type,
+    origin_win_id = args.origin_win_id,
   }
 
   local slow_job = {}
@@ -128,22 +130,40 @@ function Job:show()
     return
   end
 
-  local current_win = self:find_win_id()
-  if current_win then
+  local focused_window = vim.api.nvim_get_current_win()
+  local current_output_win = self:find_win_id()
+  if current_output_win then
     -- Already shown; quickly select the window so we can scroll
-    vim.api.nvim_set_current_win(current_win)
+    vim.api.nvim_set_current_win(current_output_win)
   elseif self:has_win() then
     -- If there's a window *somewhere* then we're probably on a
     -- different tabpage. This should just be a nop
     return
   else
     -- Open a window *only* if there's no window *anywhere*
+    if vim.fn.win_id2win(self.origin_win_id) == 0 then
+      -- Couldn't find the "origin" window in this tab. We don't
+      -- want to show output in the wrong tab, so just no-op for now.
+      -- TODO: Can/should we switch back to the origin tab?
+      return
+    end
+
+    -- First, ensure the "origin" window is focused, so the output shows
+    -- up where we expect it to (even if we left the original window)
+    vim.api.nvim_set_current_win(self.origin_win_id)
     vim.cmd([[aboveleft 10split | e #]] .. self.buf_id)
   end
 
   vim.bo.bufhidden = 'wipe'
   vim.cmd([[normal G]])
   vim.cmd([[wincmd p]])
+
+  if focused_window ~= self.origin_win_id then
+    -- If we weren't in the origin window, go back to where we were.
+    -- Note that the check at the very top of this fn ensures we don't
+    -- leave the output window if that's where we started.
+    vim.api.nvim_set_current_win(focused_window)
+  end
 end
 
 return Job

@@ -20,7 +20,7 @@ local M = {}
 ---@alias TestType "'file'" | "'nearest'" | "'suite'"
 ---@alias Position { file: string, line: number, col: number }
 
----@alias CommandArgs { command: string[]|nil, position: Position|nil, arguments: string[], remove_arguments: string[], on_exit: fun(exit_code: number), win_id: number|nil }
+---@alias CommandArgs { command: string[]|nil, position: Position|nil, arguments: string[], remove_arguments: string[], on_exit: fun(exit_code: number), win_id: number|nil, origin_win_id: number|nil }
 
 ---@param type TestType
 ---@param args CommandArgs
@@ -46,6 +46,7 @@ function M.run(type, args)
   local job = Job:start(type, position, command, {
     cwd = vim.g['test#project_root'],
     win_id = args and args.win_id,
+    origin_win_id = (args and args.origin_win_id) or vim.fn.win_getid(),
     on_exit = function(exit_code)
       if args.on_exit then
         args.on_exit(exit_code)
@@ -68,6 +69,7 @@ function M.create_position()
   }
 end
 
+---@return string[]|nil
 function M.get_command(type, position, arguments)
   if not vim.fn['test#test_file'](position.file) then
     return
