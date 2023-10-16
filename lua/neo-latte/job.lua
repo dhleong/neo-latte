@@ -25,7 +25,7 @@ end
 ---@param type TestType
 ---@param position Position
 ---@param command string[]
----@params args { on_exit: fun(exit_code: number), slow_job_timeout: number|nil, win_id: number|nil }
+---@params args { on_exit: fun(job: Job, exit_code: number), slow_job_timeout: number|nil, win_id: number|nil }
 function Job:start(type, position, command, args)
   if args.win_id then
     vim.api.nvim_set_current_win(args.win_id)
@@ -48,7 +48,7 @@ function Job:start(type, position, command, args)
     cwd = args.cwd,
     on_exit = function(_, exit_code)
       if args.on_exit then
-        args.on_exit(exit_code)
+        args.on_exit(job, exit_code)
       end
 
       if slow_job.show_timer then

@@ -20,10 +20,10 @@ local M = {}
 ---@alias TestType "'file'" | "'nearest'" | "'suite'"
 ---@alias Position { file: string, line: number, col: number }
 
----@alias CommandArgs { command: string[]|nil, position: Position|nil, arguments: string[], remove_arguments: string[], on_exit: fun(exit_code: number), win_id: number|nil, origin_win_id: number|nil }
+---@alias TestCommandArgs { command: string[]|nil, position: Position|nil, arguments: string[], remove_arguments: string[], on_exit: fun(job: Job, exit_code: number), win_id: number|nil, origin_win_id: number|nil }
 
 ---@param type TestType
----@param args CommandArgs
+---@param args TestCommandArgs
 ---@return Job | nil
 function M.run(type, args)
   local leave_project_root = activate_project_root()
@@ -47,9 +47,9 @@ function M.run(type, args)
     cwd = vim.g['test#project_root'],
     win_id = args and args.win_id,
     origin_win_id = (args and args.origin_win_id) or vim.fn.win_getid(),
-    on_exit = function(exit_code)
+    on_exit = function(job, exit_code)
       if args.on_exit then
-        args.on_exit(exit_code)
+        args.on_exit(job, exit_code)
       end
     end
   })
