@@ -1,6 +1,5 @@
 local ui = require 'neo-latte.ui'
-
-local default_slow_job_timeout_ms = 3000
+local prefs = require 'neo-latte.prefs'
 
 ---@class Job
 ---@field buf_id number
@@ -22,7 +21,7 @@ function Job:new(args)
 end
 
 -- If slow_job_timeout is not `0`, it is a duration in ms (defualting to
--- default_slow_job_timeout_ms) after which a still-running job is shown
+-- `prefs 'show_jobs_after_ms'`) after which a still-running job is shown
 ---@param type TestType
 ---@param position Position
 ---@param command string[]
@@ -87,7 +86,7 @@ function Job:start(type, position, command, args)
     slow_job.show_timer = vim.defer_fn(function()
       slow_job.show_timer = nil
       job:show()
-    end, args.slow_job_timeout or default_slow_job_timeout_ms)
+    end, args.slow_job_timeout or prefs 'show_jobs_after_ms')
   end
 
   return job
