@@ -20,11 +20,11 @@ local M = {}
 ---@alias TestType "'file'" | "'nearest'" | "'suite'"
 ---@alias Position { file: string, line: number, col: number }
 
----@alias TestCommandArgs { command: string[]|nil, position: Position|nil, arguments: string[], remove_arguments: string[], on_exit: fun(job: Job, exit_code: number), win_id: number|nil, origin_win_id: number|nil }
+---@alias TestCommandArgs { command: string[]|nil, position: Position|nil, arguments: string[], remove_arguments: string[], on_exit: fun(job: NeoLatteJob, exit_code: number), win_id: number|nil, origin_win_id: number|nil }
 
 ---@param type TestType
 ---@param args TestCommandArgs
----@return Job | nil
+---@return NeoLatteJob | nil
 function M.run(type, args)
   local leave_project_root = activate_project_root()
 

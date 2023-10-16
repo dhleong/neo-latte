@@ -2,7 +2,7 @@ local prefs = require 'neo-latte.prefs'
 local test = require 'neo-latte.test'
 local ui = require 'neo-latte.ui'
 
----@alias TabPageState { last_job: Job| nil, auto: TestType|nil }
+---@alias TabPageState { last_job: NeoLatteJob| nil, auto: TestType|nil }
 
 local state = {
   ---@type table<number, TabPageState>

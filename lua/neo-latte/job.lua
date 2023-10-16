@@ -1,7 +1,7 @@
 local ui = require 'neo-latte.ui'
 local prefs = require 'neo-latte.prefs'
 
----@class Job
+---@class NeoLatteJob
 ---@field buf_id number
 ---@field origin_win_id number
 ---@field command string[]
@@ -10,7 +10,7 @@ local prefs = require 'neo-latte.prefs'
 ---@field type TestType
 local Job = {}
 
----@return Job
+---@return NeoLatteJob
 function Job:new(args)
   local o = vim.tbl_deep_extend('force', {}, args)
 
@@ -25,7 +25,7 @@ end
 ---@param type TestType
 ---@param position Position
 ---@param command string[]
----@params args { on_exit: fun(job: Job, exit_code: number), slow_job_timeout: number|nil, win_id: number|nil }
+---@params args { on_exit: fun(job: NeoLatteJob, exit_code: number), slow_job_timeout: number|nil, win_id: number|nil }
 function Job:start(type, position, command, args)
   if args.win_id then
     vim.api.nvim_set_current_win(args.win_id)
