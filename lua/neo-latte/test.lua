@@ -1,6 +1,8 @@
 local Job = require 'neo-latte.job'
 
-local function activate_project_root()
+local M = {}
+
+function M.activate_project_root()
   if vim.g['test#project_root'] == nil then
     return function()
       -- nop
@@ -15,8 +17,6 @@ local function activate_project_root()
   end
 end
 
-local M = {}
-
 ---@alias TestType "'file'" | "'nearest'" | "'suite'"
 ---@alias Position { file: string, line: number, col: number }
 
@@ -26,7 +26,7 @@ local M = {}
 ---@param args TestCommandArgs
 ---@return NeoLatteJob | nil
 function M.run(type, args)
-  local leave_project_root = activate_project_root()
+  local leave_project_root = M.activate_project_root()
 
   local position = args.position or M.create_position()
   local command = args.command or M.get_command(type, position, args.arguments)
